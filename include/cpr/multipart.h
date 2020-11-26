@@ -10,18 +10,21 @@
 namespace cpr {
 
 struct File {
-    explicit File(const std::string&& filepath) : filepath(std::move(filepath)) {}
+    explicit File(std::string&& filepath) : filepath(std::move(filepath)) {}
     explicit File(const std::string& filepath) : filepath(filepath) {}
     const std::string filepath;
 };
 
 struct Buffer {
-    typedef const unsigned char* data_t;
+    using data_t = const unsigned char*;
 
     template <typename Iterator>
-    explicit Buffer(Iterator begin, Iterator end, const std::string&& filename)
-            : data{reinterpret_cast<data_t>(&(*begin))}, datalen{static_cast<unsigned long>(
-                                                                 std::distance(begin, end))},
+    Buffer(Iterator begin, Iterator end, std::string&& filename)
+            // Ignored here since libcurl reqires a long.
+            // There is also no way around the reinterpret_cast.
+            // NOLINTNEXTLINE(google-runtime-int, cppcoreguidelines-pro-type-reinterpret-cast)
+            : data{reinterpret_cast<data_t>(&(*begin))}, datalen{static_cast<long>(
+                                                            std::distance(begin, end))},
               filename(std::move(filename)) {
         is_random_access_iterator(begin, end);
         static_assert(sizeof(*begin) == 1, "only byte buffers can be used");
@@ -33,7 +36,9 @@ struct Buffer {
     is_random_access_iterator(Iterator /* begin */, Iterator /* end */) {}
 
     data_t data;
-    unsigned long datalen;
+    // Ignored here since libcurl reqires a long:
+    // NOLINTNEXTLINE(google-runtime-int)
+    long datalen;
     const std::string filename;
 };
 
@@ -54,8 +59,10 @@ struct Part {
     std::string name;
     std::string value;
     std::string content_type;
-    Buffer::data_t data;
-    unsigned long datalen;
+    Buffer::data_t data{nullptr};
+    // Ignored here since libcurl reqires a long:
+    // NOLINTNEXTLINE(google-runtime-int)
+    long datalen{0};
     bool is_file;
     bool is_buffer;
 };

@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "cpr/auth.h"
+#include "cpr/bearer.h"
 #include "cpr/cprtypes.h"
 #include "cpr/digest.h"
 #include "cpr/multipart.h"
@@ -53,6 +54,7 @@ AsyncResponse GetAsync(Ts... ts) {
 
 // Get callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto GetCallback(Then then, Ts... ts) -> std::future<decltype(then(Get(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Get(std::move(ts)...)); },
@@ -76,6 +78,7 @@ AsyncResponse PostAsync(Ts... ts) {
 
 // Post callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto PostCallback(Then then, Ts... ts) -> std::future<decltype(then(Post(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Post(std::move(ts)...)); },
@@ -99,6 +102,7 @@ AsyncResponse PutAsync(Ts... ts) {
 
 // Put callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto PutCallback(Then then, Ts... ts) -> std::future<decltype(then(Put(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Put(std::move(ts)...)); },
@@ -122,6 +126,7 @@ AsyncResponse HeadAsync(Ts... ts) {
 
 // Head callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto HeadCallback(Then then, Ts... ts) -> std::future<decltype(then(Head(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Head(std::move(ts)...)); },
@@ -146,6 +151,7 @@ AsyncResponse DeleteAsync(Ts... ts) {
 
 // Delete callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto DeleteCallback(Then then, Ts... ts) -> std::future<decltype(then(Delete(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Delete(std::move(ts)...)); },
@@ -170,6 +176,7 @@ AsyncResponse OptionsAsync(Ts... ts) {
 
 // Options callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto OptionsCallback(Then then, Ts... ts)
         -> std::future<decltype(then(Options(std::move(ts)...)))> {
     return std::async(
@@ -194,6 +201,7 @@ AsyncResponse PatchAsync(Ts... ts) {
 
 // Patch callback methods
 template <typename Then, typename... Ts>
+// NOLINTNEXTLINE(fuchsia-trailing-return)
 auto PatchCallback(Then then, Ts... ts) -> std::future<decltype(then(Patch(std::move(ts)...)))> {
     return std::async(
             std::launch::async, [](Then then, Ts... ts) { return then(Patch(std::move(ts)...)); },
@@ -206,6 +214,14 @@ Response Download(std::ofstream& file, Ts&&... ts) {
     Session session;
     priv::set_option(session, std::forward<Ts>(ts)...);
     return session.Download(file);
+}
+
+// Download with user callback
+template <typename... Ts>
+Response Download(const WriteCallback& write, Ts&&... ts) {
+    Session session;
+    priv::set_option(session, std::forward<Ts>(ts)...);
+    return session.Download(write);
 }
 
 } // namespace cpr

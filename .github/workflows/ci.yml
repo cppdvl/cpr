@@ -6,8 +6,8 @@ on:
     branches: [ master ]
 
 jobs:
-  ubuntu-gcc-ssl:
-    runs-on: ubuntu-latest
+  ubuntu-20-gcc-ssl:
+    runs-on: ubuntu-20.04
     steps:
     - name: Checkout
       uses: actions/checkout@v2.2.0
@@ -25,9 +25,74 @@ jobs:
         build-type: Release
         run-test: true
         ctest-options: -V
+
+  ubuntu-18-gcc-ssl:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+      with:
+        submodules: true
+    - name: Install libssl-dev
+      run: sudo apt install libssl-dev
+    - name: "[Release g++] Build & Test"
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{github.workspace}}/build
+        source-dir: ${{github.workspace}}
+        cc: gcc
+        cxx: g++
+        build-type: Release
+        run-test: true
+        ctest-options: -V
+    
+  ubuntu-18-gcc-ssl-address-leak-undefined-behavior-sanitizer:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+      with:
+        submodules: true
+    - name: Install libssl-dev
+      run: sudo apt install libssl-dev
+    - name: Install sanitizer
+      run: sudo apt install libasan5 libubsan1 liblsan0 libtsan0
+    - name: "[Release g++] Build & Test"
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{github.workspace}}/build
+        source-dir: ${{github.workspace}}
+        cc: gcc
+        cxx: g++
+        build-type: AllSan
+        run-test: true
+        ctest-options: -V
+
+  ubuntu-18-gcc-ssl-thread-sanitizer:
+    runs-on: ubuntu-18.04
+    if: ${{ false }} # Disabled for now until all problems are resolved
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+      with:
+        submodules: true
+    - name: Install libssl-dev
+      run: sudo apt install libssl-dev
+    - name: Install sanitizer
+      run: sudo apt install libasan5 libubsan1 liblsan0 libtsan0
+    - name: "[Release g++] Build & Test"
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{github.workspace}}/build
+        source-dir: ${{github.workspace}}
+        cc: gcc
+        cxx: g++
+        build-type: ThreadSan
+        run-test: true
+        ctest-options: -V
   
-  ubuntu-clang-ssl:
-    runs-on: ubuntu-latest
+  ubuntu-18-clang-ssl:
+    runs-on: ubuntu-18.04
     steps:
     - name: Checkout
       uses: actions/checkout@v2.2.0
@@ -42,6 +107,26 @@ jobs:
         source-dir: ${{github.workspace}}
         cc: clang
         cxx: clang++
+        build-type: Release
+        run-test: true
+        ctest-options: -V
+
+  ubuntu-16-gcc-ssl:
+    runs-on: ubuntu-16.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+      with:
+        submodules: true
+    - name: Install libssl-dev
+      run: sudo apt install libssl-dev
+    - name: "[Release g++] Build & Test"
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{github.workspace}}/build
+        source-dir: ${{github.workspace}}
+        cc: gcc
+        cxx: g++
         build-type: Release
         run-test: true
         ctest-options: -V
@@ -70,6 +155,7 @@ jobs:
   
   windows-msvc-openssl:
     runs-on: windows-latest
+    if: ${{ false }} # Disabled for now until we find a way to install OpenSSL from the terminal (#418)
     steps:
     - name: Checkout
       uses: actions/checkout@v2.2.0

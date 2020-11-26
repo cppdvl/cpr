@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.15)
 
 add_library(cpr
     auth.cpp
+    bearer.cpp
     cookies.cpp
     cprtypes.cpp
+    curl_container.cpp
     curlholder.cpp
-    digest.cpp
     error.cpp
     multipart.cpp
-    ntlm.cpp
     parameters.cpp
     payload.cpp
     proxies.cpp
@@ -16,6 +16,7 @@ add_library(cpr
     timeout.cpp
     unix_socket.cpp
     util.cpp
+    response.cpp
     )
 
 add_library(cpr::cpr ALIAS cpr)

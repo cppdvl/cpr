@@ -1,4 +1,5 @@
 #include "httpServer.hpp"
+#include <string>
 
 namespace cpr {
 std::string HttpServer::GetBaseUrl() {
@@ -55,7 +56,7 @@ void HttpServer::OnRequestOptions(mg_connection* conn, http_message* msg) {
             "Access-Control-Max-Age: 3600";
 
     mg_send_head(conn, 200, 0, headers.c_str());
-    std::string response{""};
+    std::string response;
     mg_send(conn, response.c_str(), response.length());
 }
 
@@ -64,7 +65,7 @@ void HttpServer::OnRequestTimeout(mg_connection* conn, http_message* msg) {
     OnRequestHello(conn, msg);
 }
 
-void HttpServer::OnRequestLowSpeed(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestLowSpeed(mg_connection* conn, http_message*  /*msg*/) {
     std::string response{"Hello world!"};
     std::string headers = "Content-Type: text/html";
     mg_send_head(conn, 200, response.length(), headers.c_str());
@@ -72,18 +73,18 @@ void HttpServer::OnRequestLowSpeed(mg_connection* conn, http_message* msg) {
     mg_send(conn, response.c_str(), response.length());
 }
 
-void HttpServer::OnRequestLowSpeedBytes(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestLowSpeedBytes(mg_connection* conn, http_message*  /*msg*/) {
     std::string response{"a"};
     std::string headers = "Content-Type: text/html";
     mg_send_head(conn, 200, response.length(), headers.c_str());
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    for (auto i = 0; i < 20; ++i) {
+    for (size_t i = 0; i < 20; ++i) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         mg_send(conn, response.c_str(), response.length());
     }
 }
 
-void HttpServer::OnRequestBasicCookies(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestBasicCookies(mg_connection* conn, http_message* /*msg*/) {
     time_t t = time(nullptr) + 5; // Valid for 1 hour
     char expire[100], expire_epoch[100];
     snprintf(expire_epoch, sizeof(expire_epoch), "%lu", static_cast<unsigned long>(t));
@@ -102,9 +103,10 @@ void HttpServer::OnRequestBasicCookies(mg_connection* conn, http_message* msg) {
     mg_send(conn, response.c_str(), response.length());
 }
 
-void HttpServer::OnRequestEmptyCookies(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestEmptyCookies(mg_connection* conn, http_message* /*msg*/) {
     time_t t = time(nullptr) + 5; // Valid for 1 hour
-    char expire[100], expire_epoch[100];
+    char expire[100];
+    char expire_epoch[100];
     snprintf(expire_epoch, sizeof(expire_epoch), "%lu", static_cast<unsigned long>(t));
     strftime(expire, sizeof(expire), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&t));
     std::string cookie{"cookie=; expires=\"" + std::string{expire} + "\"; http-only;"};
@@ -137,7 +139,7 @@ void HttpServer::OnRequestCheckCookies(mg_connection* conn, http_message* msg) {
     OnRequestHello(conn, msg);
 }
 
-void HttpServer::OnRequestV1Cookies(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestV1Cookies(mg_connection* conn, http_message* /*msg*/) {
     time_t t = time(nullptr) + 5; // Valid for 1 hour
     char expire[100], expire_epoch[100];
     snprintf(expire_epoch, sizeof(expire_epoch), "%lu", static_cast<unsigned long>(t));
@@ -162,7 +164,7 @@ void HttpServer::OnRequestCheckV1Cookies(mg_connection* conn, http_message* msg)
     }
     std::string cookie_str{request_cookies->p, request_cookies->len};
 
-    if (cookie_str.find("cookie=\"value with spaces (v1 cookie)\";") == cookie_str.npos) {
+    if (cookie_str.find("cookie=\"value with spaces (v1 cookie)\";") == std::string::npos) {
         mg_http_send_error(conn, 400, "Cookie with space not found");
         return;
     }
@@ -172,19 +174,19 @@ void HttpServer::OnRequestCheckV1Cookies(mg_connection* conn, http_message* msg)
 
 void HttpServer::OnRequestBasicAuth(mg_connection* conn, http_message* msg) {
     mg_str* requested_auth;
-    auto auth = std::string{"Basic"};
+    std::string auth{"Basic"};
     if ((requested_auth = mg_get_http_header(msg, "Authorization")) == nullptr ||
         mg_ncasecmp(requested_auth->p, auth.c_str(), auth.length()) != 0) {
         mg_http_send_error(conn, 401, "Unauthorized");
         return;
     }
-    auto auth_string = std::string{requested_auth->p, requested_auth->len};
-    auto basic_token = auth_string.find(' ') + 1;
+    std::string auth_string{requested_auth->p, requested_auth->len};
+    size_t basic_token = auth_string.find(' ') + 1;
     auth_string = auth_string.substr(basic_token, auth_string.length() - basic_token);
     auth_string = Base64Decode(auth_string);
-    auto colon = auth_string.find(':');
-    auto username = auth_string.substr(0, colon);
-    auto password = auth_string.substr(colon + 1, auth_string.length() - colon - 1);
+    size_t colon = auth_string.find(':');
+    std::string username = auth_string.substr(0, colon);
+    std::string password = auth_string.substr(colon + 1, auth_string.length() - colon - 1);
     if (username == "user" && password == "password") {
         OnRequestHeaderReflect(conn, msg);
     } else {
@@ -192,7 +194,25 @@ void HttpServer::OnRequestBasicAuth(mg_connection* conn, http_message* msg) {
     }
 }
 
-void HttpServer::OnRequestBasicJson(mg_connection* conn, http_message* msg) {
+void HttpServer::OnRequestBearerAuth(mg_connection* conn, http_message* msg) {
+    mg_str* requested_auth;
+    std::string auth{"Bearer"};
+    if ((requested_auth = mg_get_http_header(msg, "Authorization")) == nullptr ||
+        mg_ncasecmp(requested_auth->p, auth.c_str(), auth.length()) != 0) {
+        mg_http_send_error(conn, 401, "Unauthorized");
+        return;
+    }
+    std::string auth_string{requested_auth->p, requested_auth->len};
+    size_t basic_token = auth_string.find(' ') + 1;
+    auth_string = auth_string.substr(basic_token, auth_string.length() - basic_token);
+    if (auth_string == "the_token") {
+        OnRequestHeaderReflect(conn, msg);
+    } else {
+        mg_http_send_error(conn, 401, "Unauthorized");
+    }
+}
+
+void HttpServer::OnRequestBasicJson(mg_connection* conn, http_message* /*msg*/) {
     std::string response =
             "[\n"
             "  {\n"
@@ -256,8 +276,8 @@ void HttpServer::OnRequestUrlPost(mg_connection* conn, http_message* msg) {
     char y[100];
     mg_get_http_var(&(msg->body), "x", x, sizeof(x));
     mg_get_http_var(&(msg->body), "y", y, sizeof(y));
-    auto x_string = std::string{x};
-    auto y_string = std::string{y};
+    std::string x_string{x};
+    std::string y_string{y};
     std::string response;
     if (y_string.empty()) {
         response = std::string{
@@ -352,7 +372,7 @@ void HttpServer::OnRequestFormPost(mg_connection* conn, http_message* msg) {
 }
 
 void HttpServer::OnRequestDelete(mg_connection* conn, http_message* msg) {
-    auto has_json_header = false;
+    bool has_json_header = false;
     for (size_t i = 0; i < sizeof(msg->header_names) / sizeof(mg_str); i++) {
         if (!msg->header_names[i].p) {
             continue;
@@ -538,6 +558,8 @@ void HttpServer::OnRequest(mg_connection* conn, http_message* msg) {
         OnRequestCheckV1Cookies(conn, msg);
     } else if (uri == "/basic_auth.html") {
         OnRequestBasicAuth(conn, msg);
+    } else if (uri == "/bearer_token.html") {
+        OnRequestBearerAuth(conn, msg);
     } else if (uri == "/digest_auth.html") {
         OnRequestHeaderReflect(conn, msg);
     } else if (uri == "/basic.json") {

@@ -1,8 +1,8 @@
 #include "httpsServer.hpp"
 
 namespace cpr {
-HttpsServer::HttpsServer(const std::string&& baseDirPath, const std::string&& sslCertFileName,
-                         const std::string&& sslKeyFileName)
+HttpsServer::HttpsServer(std::string&& baseDirPath, std::string&& sslCertFileName,
+                         std::string&& sslKeyFileName)
         : baseDirPath(std::move(baseDirPath)), sslCertFileName(std::move(sslCertFileName)),
           sslKeyFileName(std::move(sslKeyFileName)) {}
 
@@ -37,11 +37,11 @@ void HttpsServer::OnRequest(mg_connection* conn, http_message* msg) {
     }
 }
 
-void HttpsServer::OnRequestNotFound(mg_connection* conn, http_message* msg) {
+void HttpsServer::OnRequestNotFound(mg_connection* conn, http_message*  /*msg*/) {
     mg_http_send_error(conn, 404, "Not Found");
 }
 
-void HttpsServer::OnRequestHello(mg_connection* conn, http_message* msg) {
+void HttpsServer::OnRequestHello(mg_connection* conn, http_message*  /*msg*/) {
     std::string response{"Hello world!"};
     std::string headers = "Content-Type: text/html";
     mg_send_head(conn, 200, response.length(), headers.c_str());

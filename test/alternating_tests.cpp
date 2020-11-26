@@ -11,14 +11,14 @@ using namespace cpr;
 static HttpServer* server = new HttpServer();
 
 TEST(AlternatingTests, PutGetTest) {
-    auto url = Url{server->GetBaseUrl() + "/header_reflect.html"};
+    Url url{server->GetBaseUrl() + "/header_reflect.html"};
     Session session;
     session.SetUrl(url);
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Put(url, payload);
-        auto expected_text = std::string{"Header reflect PUT"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Put(url, payload);
+        std::string expected_text{"Header reflect PUT"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -26,8 +26,8 @@ TEST(AlternatingTests, PutGetTest) {
     }
 
     {
-        auto response = cpr::Get(url);
-        auto expected_text = std::string{"Header reflect GET"};
+        Response response = cpr::Get(url);
+        std::string expected_text{"Header reflect GET"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -36,14 +36,14 @@ TEST(AlternatingTests, PutGetTest) {
 }
 
 TEST(AlternatingTests, PutGetPutGetTest) {
-    auto url = Url{server->GetBaseUrl() + "/header_reflect.html"};
+    Url url{server->GetBaseUrl() + "/header_reflect.html"};
     Session session;
     session.SetUrl(url);
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Put(url, payload);
-        auto expected_text = std::string{"Header reflect PUT"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Put(url, payload);
+        std::string expected_text{"Header reflect PUT"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -51,8 +51,8 @@ TEST(AlternatingTests, PutGetPutGetTest) {
     }
 
     {
-        auto response = cpr::Get(url);
-        auto expected_text = std::string{"Header reflect GET"};
+        Response response = cpr::Get(url);
+        std::string expected_text{"Header reflect GET"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -60,9 +60,9 @@ TEST(AlternatingTests, PutGetPutGetTest) {
     }
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Put(url, payload);
-        auto expected_text = std::string{"Header reflect PUT"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Put(url, payload);
+        std::string expected_text{"Header reflect PUT"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -70,8 +70,8 @@ TEST(AlternatingTests, PutGetPutGetTest) {
     }
 
     {
-        auto response = cpr::Get(url);
-        auto expected_text = std::string{"Header reflect GET"};
+        Response response = cpr::Get(url);
+        std::string expected_text{"Header reflect GET"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -80,14 +80,14 @@ TEST(AlternatingTests, PutGetPutGetTest) {
 }
 
 TEST(AlternatingTests, HeadGetTest) {
-    auto url = Url{server->GetBaseUrl() + "/header_reflect.html"};
+    Url url{server->GetBaseUrl() + "/header_reflect.html"};
     Session session;
     session.SetUrl(url);
 
     {
         // Head shouldn't return a body
-        auto response = cpr::Head(url);
-        auto expected_text = std::string{""};
+        Response response = cpr::Head(url);
+        std::string expected_text{""};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -95,8 +95,8 @@ TEST(AlternatingTests, HeadGetTest) {
     }
 
     {
-        auto response = cpr::Get(url);
-        auto expected_text = std::string{"Header reflect GET"};
+        Response response = cpr::Get(url);
+        std::string expected_text{"Header reflect GET"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -105,14 +105,14 @@ TEST(AlternatingTests, HeadGetTest) {
 }
 
 TEST(AlternatingTests, PutHeadTest) {
-    auto url = Url{server->GetBaseUrl() + "/header_reflect.html"};
+    Url url{server->GetBaseUrl() + "/header_reflect.html"};
     Session session;
     session.SetUrl(url);
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Put(url, payload);
-        auto expected_text = std::string{"Header reflect PUT"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Put(url, payload);
+        std::string expected_text{"Header reflect PUT"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -121,8 +121,8 @@ TEST(AlternatingTests, PutHeadTest) {
 
     {
         // Head shouldn't return a body
-        auto response = cpr::Head(url);
-        auto expected_text = std::string{""};
+        Response response = cpr::Head(url);
+        std::string expected_text{""};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -131,14 +131,14 @@ TEST(AlternatingTests, PutHeadTest) {
 }
 
 TEST(AlternatingTests, PutPostTest) {
-    auto url = Url{server->GetBaseUrl() + "/header_reflect.html"};
+    Url url{server->GetBaseUrl() + "/header_reflect.html"};
     Session session;
     session.SetUrl(url);
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Put(url, payload);
-        auto expected_text = std::string{"Header reflect PUT"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Put(url, payload);
+        std::string expected_text{"Header reflect PUT"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);
@@ -146,9 +146,9 @@ TEST(AlternatingTests, PutPostTest) {
     }
 
     {
-        auto payload = Payload{{"x", "5"}};
-        auto response = cpr::Post(url, payload);
-        auto expected_text = std::string{"Header reflect POST"};
+        Payload payload{{"x", "5"}};
+        Response response = cpr::Post(url, payload);
+        std::string expected_text{"Header reflect POST"};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(200, response.status_code);

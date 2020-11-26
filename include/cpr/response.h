@@ -1,45 +1,55 @@
 #ifndef CPR_RESPONSE_H
 #define CPR_RESPONSE_H
 
+#include <cassert>
 #include <cstdint>
+#include <curl/curl.h>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "cpr/cookies.h"
 #include "cpr/cprtypes.h"
 #include "cpr/error.h"
-#include <utility>
+#include "cpr/ssl_options.h"
+#include "cpr/util.h"
 
 namespace cpr {
 
 class Response {
+  private:
+    std::shared_ptr<CurlHolder> curl_;
+
   public:
-    Response() = default;
-
-    Response(const std::int32_t& p_status_code, std::string&& p_text, Header&& p_header,
-             Url&& p_url, const double& p_elapsed, Cookies&& p_cookies = Cookies{},
-             Error&& p_error = Error{}, std::string&& p_raw_header = "",
-             std::string&& p_status_line = "", std::string&& p_reason = "",
-             const double& p_uploaded_bytes = 0, const double& p_downloaded_bytes = 0)
-            : status_code{p_status_code}, text(std::move(p_text)), header(std::move(p_header)),
-              url(std::move(p_url)), elapsed{p_elapsed}, cookies(std::move(p_cookies)),
-              error(std::move(p_error)), raw_header(std::move(p_raw_header)),
-              status_line(std::move(p_status_line)), reason(std::move(p_reason)),
-              uploaded_bytes{p_uploaded_bytes}, downloaded_bytes{p_downloaded_bytes} {}
-
-    std::int32_t status_code;
+    // Ignored here since libcurl uses a long for this.
+    // NOLINTNEXTLINE(google-runtime-int)
+    long status_code{};
     std::string text;
     Header header;
     Url url;
-    double elapsed;
+    double elapsed{};
     Cookies cookies;
     Error error;
     std::string raw_header;
     std::string status_line;
     std::string reason;
-    double uploaded_bytes;
-    double downloaded_bytes;
-};
+    cpr_off_t uploaded_bytes{};
+    cpr_off_t downloaded_bytes{};
+    // Ignored here since libcurl uses a long for this.
+    // NOLINTNEXTLINE(google-runtime-int)
+    long redirect_count{};
 
+    Response(std::shared_ptr<CurlHolder> curl, std::string&& p_text, std::string&& p_header_string,
+             Cookies&& p_cookies, Error&& p_error);
+    std::vector<std::string> GetCertInfo();
+    Response(const Response& other) = default;
+    Response(Response&& old) noexcept = default;
+    ~Response() noexcept = default;
+
+    Response& operator=(Response&& old) noexcept = default;
+    Response& operator=(const Response& other) noexcept = default;
+};
 } // namespace cpr
 
 #endif

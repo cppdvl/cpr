@@ -13,6 +13,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 set(CPR_LIBRARIES cpr CACHE INTERNAL "")
 
+
 macro(cpr_option OPTION_NAME OPTION_TEXT OPTION_DEFAULT)
     option(${OPTION_NAME} ${OPTION_TEXT} ${OPTION_DEFAULT})
     if(DEFINED ENV{${OPTION_NAME}})
@@ -25,11 +26,11 @@ macro(cpr_option OPTION_NAME OPTION_TEXT OPTION_DEFAULT)
     message(STATUS "  ${OPTION_NAME}: ${${OPTION_NAME}}")
 endmacro()
 
-option(${BUILD_SHARED_LIBS} "Build libraries as shared libraries" ON)
+option(${BUILD_SHARED_LIBS} "Build libraries as shared libraries" OFF)
 message(STATUS "C++ Requests CMake Options")
 message(STATUS "=======================================================")
 cpr_option(USE_SYSTEM_CURL
-    "If ON, this project will look in the system paths for an installed curl library" OFF)
+    "If ON, this project will look in the system paths for an installed curl library" ON)
 cpr_option(BUILD_CPR_TESTS "Set to ON to build cpr tests." ON)
 cpr_option(BUILD_CPR_TESTS_SSL "Set to ON to build cpr ssl tests" ${BUILD_CPR_TESTS})
 cpr_option(GENERATE_COVERAGE "Set to ON to generate coverage reports." OFF)
@@ -52,14 +53,31 @@ endif()
 include(GNUInstallDirs)
 include(FetchContent)
 include(cmake/code_coverage.cmake)
+include(cmake/sanitizer.cmake)
+get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if (NOT isMultiConfig)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "${ALLOWED_BUILD_TYPES}")
+    if (NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Debug CACHE STRING "" FORCE)
+    elseif(NOT CMAKE_BUILD_TYPE IN_LIST ALLOWED_BUILD_TYPES)
+        message(FATAL_ERROR "Invalid build type: ${CMAKE_BUILD_TYPE}")
+    endif()
+else ()
+    unset(CMAKE_BUILD_TYPE)
+    foreach(TYPE ${ALLOWED_BUILD_TYPES})
+    if (NOT ${TYPE} IN_LIST CMAKE_CONFIGURATION_TYPES)
+        list(APPEND CMAKE_CONFIGURATION_TYPES ${TYPE})
+    endif()  
+    endforeach()  
+endif()
 
 # Curl configuration
 if(USE_SYSTEM_CURL)
-    find_package(CURL COMPONENTS PROTOCOLS HTTP HTTPS FEATURES SSL)
+    find_package(CURL COMPONENTS HTTP HTTPS SSL)
     if (CURL_FOUND)
         set(SSL_ENABLED ON CACHE INTERNAL "" FORCE)
     else()
-        find_package(CURL COMPONENTS PROTOCOLS HTTP)
+        find_package(CURL COMPONENTS HTTP)
         if(CURL_FOUND)
             set(SSL_ENABLED OFF CACHE INTERNAL "" FORCE)
         endif()
@@ -90,9 +108,8 @@ if(NOT USE_SYSTEM_CURL OR NOT CURL_FOUND)
     # Show progress of FetchContent:
     set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "" FORCE)
     FetchContent_Declare(curl
-                         GIT_REPOSITORY         https://github.com/curl/curl.git
-                         GIT_TAG                b81e0b07784dc4c1e8d0a86194b9d28776d071c0 # the hash for curl-7_69_1
-                         GIT_PROGRESS           TRUE
+                         URL                    https://github.com/curl/curl/releases/download/curl-7_69_1/curl-7.69.1.tar.xz
+                         URL_HASH               SHA256=03c7d5e6697f7b7e40ada1b2256e565a555657398e6c1fcfa4cb251ccd819d4f # the file hash for curl-7.69.1.tar.xz
                          USES_TERMINAL_DOWNLOAD TRUE)   # <---- This is needed only for Ninja to show download progress
 
     FetchContent_MakeAvailable(curl)
@@ -124,9 +141,8 @@ if(BUILD_CPR_TESTS)
             set(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use the shared c runtime")
         endif()
         FetchContent_Declare(googletest
-                             GIT_REPOSITORY         https://github.com/google/googletest.git
-                             GIT_TAG                703bd9caab50b139428cea1aaff9974ebee5742e # the hash for release-1.10.0
-                             GIT_PROGRESS           TRUE
+                             URL                    https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+                             URL_HASH               SHA256=9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb # the file hash for release-1.10.0.tar.gz
                              USES_TERMINAL_DOWNLOAD TRUE)   # <---- This is needed only for Ninja to show download progress
         FetchContent_MakeAvailable(googletest)
         
@@ -158,9 +174,8 @@ if(BUILD_CPR_TESTS)
     endif()
 
     FetchContent_Declare(mongoose 
-                         GIT_REPOSITORY         https://github.com/cesanta/mongoose.git
-                         GIT_TAG                80d74e9e341d541f71c0fa587d22cec89be32dd5 # the hash for 6.18
-                         GIT_PROGRESS           TRUE
+                         URL                    https://github.com/cesanta/mongoose/archive/6.18.tar.gz
+                         URL_HASH               SHA256=f5c10346abc9c72f7cac7885d853ca064fb09aad57580433941a8fd7a3543769 # the hash for 6.18.tar.gz
                          USES_TERMINAL_DOWNLOAD TRUE)   # <---- This is needed only for Ninja to show download progress
     # We can not use FetchContent_MakeAvailable, since we need to patch mongoose to use CMake
     if (NOT mongoose_POPULATED)

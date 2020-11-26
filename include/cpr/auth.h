@@ -9,18 +9,21 @@ namespace cpr {
 
 class Authentication {
   public:
-    Authentication(const std::string&& username, const std::string&& password)
-            : username_(std::move(username)),
-              password_(std::move(password)), auth_string_{this->username_ + ":" +
-                                                           this->password_} {}
-    virtual ~Authentication() = default;
+    Authentication(const std::string& username, const std::string& password)
+            : auth_string_{username + ":" + password} {}
+    Authentication(std::string&& username, std::string&& password)
+            : auth_string_{std::move(username) + ":" + std::move(password)} {}
+    Authentication(const Authentication& other) = default;
+    Authentication(Authentication&& old) noexcept = default;
+    virtual ~Authentication() noexcept = default;
 
-    const char* GetAuthString() const noexcept;
+    Authentication& operator=(Authentication&& old) noexcept = default;
+    Authentication& operator=(const Authentication& other) noexcept = default;
 
-  private:
-    const std::string username_;
-    const std::string password_;
-    const std::string auth_string_;
+    virtual const char* GetAuthString() const noexcept;
+
+  protected:
+    std::string auth_string_;
 };
 
 } // namespace cpr

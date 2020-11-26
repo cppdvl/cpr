@@ -26,24 +26,24 @@ enum class ErrorCode {
     SSL_CACERT_ERROR,
     GENERIC_SSL_ERROR,
     UNSUPPORTED_PROTOCOL,
+    REQUEST_CANCELLED,
     UNKNOWN_ERROR = 1000,
 };
 
 class Error {
   public:
-    Error() : code{ErrorCode::OK} {}
+    ErrorCode code = ErrorCode::OK;
+    std::string message{};
 
-    template <typename TextType>
-    Error(const std::int32_t& curl_code, TextType&& p_error_message)
+    Error() = default;
+
+    Error(const std::int32_t& curl_code, std::string&& p_error_message)
             : code{getErrorCodeForCurlError(curl_code)},
-              message(std::forward<TextType>(p_error_message)) {}
+              message(std::move(p_error_message)) {}
 
     explicit operator bool() const {
         return code != ErrorCode::OK;
     }
-
-    ErrorCode code;
-    std::string message;
 
   private:
     static ErrorCode getErrorCodeForCurlError(std::int32_t curl_code);

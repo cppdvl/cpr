@@ -6,7 +6,9 @@
 #include <memory>
 
 #include "cpr/auth.h"
+#include "cpr/bearer.h"
 #include "cpr/body.h"
+#include "cpr/callback.h"
 #include "cpr/connect_timeout.h"
 #include "cpr/cookies.h"
 #include "cpr/cprtypes.h"
@@ -31,10 +33,13 @@ namespace cpr {
 class Session {
   public:
     Session();
+    Session(Session&& old) noexcept = default;
+    Session(const Session& other) = delete;
+
     ~Session();
 
-    Session(Session&& other);
-    Session& operator=(Session&& other);
+    Session& operator=(Session&& old) noexcept = default;
+    Session& operator=(const Session& other) = delete;
 
     void SetUrl(const Url& url);
     void SetParameters(const Parameters& parameters);
@@ -61,6 +66,11 @@ class Session {
     void SetVerifySsl(const VerifySsl& verify);
     void SetUnixSocket(const UnixSocket& unix_socket);
     void SetSslOptions(const SslOptions& options);
+    void SetReadCallback(const ReadCallback& read);
+    void SetHeaderCallback(const HeaderCallback& header);
+    void SetWriteCallback(const WriteCallback& write);
+    void SetProgressCallback(const ProgressCallback& progress);
+    void SetDebugCallback(const DebugCallback& debug);
     void SetVerbose(const Verbose& verbose);
 
     // Used in templated functions
@@ -71,6 +81,7 @@ class Session {
     void SetOption(const Timeout& timeout);
     void SetOption(const ConnectTimeout& timeout);
     void SetOption(const Authentication& auth);
+    void SetOption(const Bearer& auth);
     void SetOption(const Digest& auth);
     void SetOption(const UserAgent& ua);
     void SetOption(Payload&& payload);
@@ -86,6 +97,11 @@ class Session {
     void SetOption(const Cookies& cookies);
     void SetOption(Body&& body);
     void SetOption(const Body& body);
+    void SetOption(const ReadCallback& read);
+    void SetOption(const HeaderCallback& header);
+    void SetOption(const WriteCallback& write);
+    void SetOption(const ProgressCallback& progress);
+    void SetOption(const DebugCallback& debug);
     void SetOption(const LowSpeed& low_speed);
     void SetOption(const VerifySsl& verify);
     void SetOption(const Verbose& verbose);
@@ -93,6 +109,7 @@ class Session {
     void SetOption(const SslOptions& options);
 
     Response Delete();
+    Response Download(const WriteCallback& write);
     Response Download(std::ofstream& file);
     Response Get();
     Response Head();

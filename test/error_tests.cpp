@@ -14,36 +14,36 @@ using namespace cpr;
 static HttpServer* server = new HttpServer();
 
 TEST(ErrorTests, UnsupportedProtocolFailure) {
-    auto url = Url{"urk://wat.is.this"};
-    auto response = cpr::Get(url);
+    Url url{"urk://wat.is.this"};
+    Response response = cpr::Get(url);
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::UNSUPPORTED_PROTOCOL, response.error.code);
 }
 
 TEST(ErrorTests, InvalidURLFailure) {
-    auto url = Url{"???"};
-    auto response = cpr::Get(url);
+    Url url{"???"};
+    Response response = cpr::Get(url);
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::INVALID_URL_FORMAT, response.error.code);
 }
 
 TEST(ErrorTests, TimeoutFailure) {
-    auto url = Url{server->GetBaseUrl() + "/timeout.html"};
-    auto response = cpr::Get(url, cpr::Timeout{1});
+    Url url{server->GetBaseUrl() + "/timeout.html"};
+    Response response = cpr::Get(url, cpr::Timeout{1});
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::OPERATION_TIMEDOUT, response.error.code);
 }
 
 TEST(ErrorTests, ChronoTimeoutFailure) {
-    auto url = Url{server->GetBaseUrl() + "/timeout.html"};
-    auto response = cpr::Get(url, cpr::Timeout{std::chrono::milliseconds{1}});
+    Url url{server->GetBaseUrl() + "/timeout.html"};
+    Response response = cpr::Get(url, cpr::Timeout{std::chrono::milliseconds{1}});
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::OPERATION_TIMEDOUT, response.error.code);
 }
 
 TEST(ErrorTests, ConnectTimeoutFailure) {
-    auto url = Url{"http://localhost:67"};
-    auto response = cpr::Get(url, cpr::ConnectTimeout{1});
+    Url url{"http://localhost:67"};
+    Response response = cpr::Get(url, cpr::ConnectTimeout{1});
     EXPECT_EQ(0, response.status_code);
     // Sometimes a CONNECTION_FAILURE happens before the OPERATION_TIMEDOUT:
     EXPECT_TRUE(response.error.code == ErrorCode::OPERATION_TIMEDOUT ||
@@ -51,8 +51,8 @@ TEST(ErrorTests, ConnectTimeoutFailure) {
 }
 
 TEST(ErrorTests, ChronoConnectTimeoutFailure) {
-    auto url = Url{"http://localhost:67"};
-    auto response = cpr::Get(url, cpr::ConnectTimeout{std::chrono::milliseconds{1}});
+    Url url{"http://localhost:67"};
+    Response response = cpr::Get(url, cpr::ConnectTimeout{std::chrono::milliseconds{1}});
     EXPECT_EQ(0, response.status_code);
     // Sometimes a CONNECTION_FAILURE happens before the OPERATION_TIMEDOUT:
     EXPECT_TRUE(response.error.code == ErrorCode::OPERATION_TIMEDOUT ||
@@ -60,22 +60,22 @@ TEST(ErrorTests, ChronoConnectTimeoutFailure) {
 }
 
 TEST(ErrorTests, LowSpeedTimeFailure) {
-    auto url = Url{server->GetBaseUrl() + "/low_speed.html"};
-    auto response = cpr::Get(url, cpr::LowSpeed{1000, 1});
+    Url url{server->GetBaseUrl() + "/low_speed.html"};
+    Response response = cpr::Get(url, cpr::LowSpeed{1000, 1});
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::OPERATION_TIMEDOUT, response.error.code);
 }
 
 TEST(ErrorTests, LowSpeedBytesFailure) {
-    auto url = Url{server->GetBaseUrl() + "/low_speed_bytes.html"};
-    auto response = cpr::Get(url, cpr::LowSpeed{1000, 1});
+    Url url{server->GetBaseUrl() + "/low_speed_bytes.html"};
+    Response response = cpr::Get(url, cpr::LowSpeed{1000, 1});
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::OPERATION_TIMEDOUT, response.error.code);
 }
 
 TEST(ErrorTests, ProxyFailure) {
-    auto url = Url{server->GetBaseUrl() + "/hello.html"};
-    auto response = cpr::Get(url, cpr::Proxies{{"http", "http://bad_host/"}});
+    Url url{server->GetBaseUrl() + "/hello.html"};
+    Response response = cpr::Get(url, cpr::Proxies{{"http", "http://bad_host/"}});
     EXPECT_EQ(url, response.url);
     EXPECT_EQ(0, response.status_code);
     EXPECT_EQ(ErrorCode::PROXY_RESOLUTION_FAILURE, response.error.code);

@@ -11,9 +11,9 @@ using namespace cpr;
 static HttpServer* server = new HttpServer();
 
 TEST(OptionsTests, BaseUrlTest) {
-    auto url = Url{server->GetBaseUrl() + "/"};
-    auto response = cpr::Options(url);
-    auto expected_text = std::string{""};
+    Url url{server->GetBaseUrl() + "/"};
+    Response response = cpr::Options(url);
+    std::string expected_text{""};
     EXPECT_EQ(expected_text, response.text);
     EXPECT_EQ(url, response.url);
     EXPECT_EQ(std::string{"GET, POST, PUT, DELETE, PATCH, OPTIONS"},
@@ -23,9 +23,9 @@ TEST(OptionsTests, BaseUrlTest) {
 }
 
 TEST(OptionsTests, SpecificUrlTest) {
-    auto url = Url{server->GetBaseUrl() + "/hello.html"};
-    auto response = cpr::Options(url);
-    auto expected_text = std::string{""};
+    Url url{server->GetBaseUrl() + "/hello.html"};
+    Response response = cpr::Options(url);
+    std::string expected_text{""};
     EXPECT_EQ(expected_text, response.text);
     EXPECT_EQ(url, response.url);
     EXPECT_EQ(std::string{"GET, POST, PUT, DELETE, PATCH, OPTIONS"},
@@ -35,14 +35,14 @@ TEST(OptionsTests, SpecificUrlTest) {
 }
 
 TEST(OptionsTests, AsyncBaseUrlTest) {
-    auto url = Url{server->GetBaseUrl() + "/"};
+    Url url{server->GetBaseUrl() + "/"};
     std::vector<AsyncResponse> responses;
-    for (int i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         responses.emplace_back(cpr::OptionsAsync(url));
     }
-    for (auto& future_response : responses) {
-        auto response = future_response.get();
-        auto expected_text = std::string{""};
+    for (cpr::AsyncResponse& future_response : responses) {
+        cpr::Response response = future_response.get();
+        std::string expected_text{""};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(std::string{"GET, POST, PUT, DELETE, PATCH, OPTIONS"},
@@ -53,14 +53,14 @@ TEST(OptionsTests, AsyncBaseUrlTest) {
 }
 
 TEST(OptionsTests, AsyncSpecificUrlTest) {
-    auto url = Url{server->GetBaseUrl() + "/hello.html"};
+    Url url{server->GetBaseUrl() + "/hello.html"};
     std::vector<AsyncResponse> responses;
-    for (int i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         responses.emplace_back(cpr::OptionsAsync(url));
     }
-    for (auto& future_response : responses) {
-        auto response = future_response.get();
-        auto expected_text = std::string{""};
+    for (cpr::AsyncResponse& future_response : responses) {
+        cpr::Response response = future_response.get();
+        std::string expected_text{""};
         EXPECT_EQ(expected_text, response.text);
         EXPECT_EQ(url, response.url);
         EXPECT_EQ(std::string{"GET, POST, PUT, DELETE, PATCH, OPTIONS"},
